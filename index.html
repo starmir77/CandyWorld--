@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE-edge">
+  <title> CandyWorld </title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Chewy&family=Fredoka:wght@300..700&family=Henny+Penny&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="stylesheet.css">
+
+</head>
+
+<body>
+  <div id="loadingOverlay" class="loadingOverlay">
+    <img src="Assets/Candies/loadingCandy.png" alt="Loading..." class="spinner" />
+    <p class="loadingText">Loading CandyWorld...</p>
+  </div>
+
+  <canvas class="webgl"></canvas>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.173.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.173.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <div id="instructions" class="hidden">
+    <p>Click the candy to earn points!</p>
+  </div>
+
+  <div id="transMessage" class="hidden">
+    <h1>Level Up! Traveling to the Next World...</h1>
+  </div>
+
+  <div id="finaleMessage" class="hidden">
+    <h1>You've reached the final world!</h1>
+    <button id="restartButton" class="restartButton">Play Again</button>
+  </div>
+
+  <div class="uiPanel">
+    <h1> Welcome to the Candyverse </h1>
+    <button id="startButton" type="button" data-target-world="Gumdrop">LET'S BEGIN</button>
+  </div>
+
+  <div class="scorePanel hidden">
+    <h2 id="scoreDisplay">Score: 0 </h2>
+  </div>
+
+  <script type="module" src="index.js"></script>
+
+</body>
+
+</html>

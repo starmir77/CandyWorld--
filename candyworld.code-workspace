@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"name": "CandyWorld",
+			"path": "."
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "CandyWorld"
+	}
+}

@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 
-import { scene, camera, pmremGenerator } from 'Scripts/sceneSetup.js';
-import gameState from 'Scripts/gameState.js';
-import { startSpawning, stopSpawning } from 'Scripts/candySpawner.js';
-import { worlds } from 'Scripts/world.js';
-import { hideInterface, showInstructions, showScorePanel } from 'Scripts/uiManager.js';
-import { loadTextureAsync, loadGLTFAsync, playTransitionSound, loadEXRAsync } from 'Scripts/assetLoader.js';
+import { scene, camera, pmremGenerator } from './Scripts/sceneSetup.js';
+import gameState from './Scripts/gameState.js';
+import { startSpawning, stopSpawning } from './Scripts/candySpawner.js';
+import { worlds } from './Scripts/world.js';
+import { hideInterface, showInstructions, showScorePanel } from './Scripts/uiManager.js';
+import { loadTextureAsync, loadGLTFAsync, playTransitionSound, loadEXRAsync } from './Scripts/assetLoader.js';
 
 export let currentClickSound = null;
 

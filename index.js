@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 
-import { flyToWorld, loadSkyboxAssets, currentClickSound, loadEXRBackground, createStars } from './worldManager.js';
-import { updateFallingCandies, fallingCandies, increaseScore, stopSpawning } from './candySpawner.js';
-import { worlds, createPlanetMeshes, universeBackground } from './world.js';
-import gameState from './gamestate.js';
-import { hideStartUI, toggleTransitionMessage, showFinalMessage } from './uiManager.js';
-import { scene, camera, renderer, ambientLight, directionalLight} from './sceneSetup.js';
+import { flyToWorld, loadSkyboxAssets, currentClickSound, loadEXRBackground, createStars } from 'Scripts/worldManager.js';
+import { updateFallingCandies, fallingCandies, increaseScore, stopSpawning } from 'Scripts/candySpawner.js';
+import { worlds, createPlanetMeshes, universeBackground } from 'Scripts/world.js';
+import gameState from 'Scripts/gameState.js';
+import { hideStartUI, toggleTransitionMessage, showFinalMessage } from 'Scripts/uiManager.js';
+import { scene, camera, renderer, ambientLight, directionalLight} from 'Scripts/sceneSetup.js';
 
 
 const worldOrder = Object.keys(worlds);

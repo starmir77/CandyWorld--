@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 
-import { scene, worldOrder } from "./index.js";
-import { camera } from './index.js';
-import gameState from './gameState.js';
-import { showFinalMessage } from './uiManager.js';
+import { scene, worldOrder } from "../index.js";
+import { camera } from "../index.js";
+import gameState from "./gameState.js";
+import { showFinalMessage } from "./uiManager.js";
 
 let fallingCandies = []; // Track falling candies
 let spawnLoop; // store interval reference so we can modify, stop later on

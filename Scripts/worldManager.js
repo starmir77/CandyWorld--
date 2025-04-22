@@ -7,6 +7,7 @@ import { worlds } from './world.js';
 import { hideInterface, showInstructions, showScorePanel } from './uiManager.js';
 import { loadTextureAsync, loadGLTFAsync, playTransitionSound, loadEXRAsync } from './assetLoader.js';
 
+
 export let currentClickSound = null;
 
 function removeOldSkyDome() {

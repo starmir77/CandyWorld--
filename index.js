@@ -16,8 +16,7 @@ scene.add(ambientLight);
 scene.add(directionalLight);
 
 // Load initial candy universe EXR (space skybox look)
-//loadEXRBackground(universeBackground);
-scene.background = new THREE.Color(0xFFEFF5);
+loadEXRBackground(universeBackground);
 
 // Add planets to scene
 const planetMeshes = createPlanetMeshes(worlds);

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export const universeBackground =  'Assets/Candies/candySpace.exr';
+export const universeBackground =  'https://xdizvogozrsuiczp.public.blob.vercel-storage.com/candySpace-2HQ5sybQFqDLVjZFAMPWL2Z19sFFN8.exr';
 
 export const worlds = {
   Gumdrop: {

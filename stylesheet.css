@@ -299,7 +299,7 @@ canvas.webgl {
 
     .uiPanel {
         width: 80%;
-        padding: 1rem;
+        padding: 0.25rem;
         left: 50%;
         transform: translate(-50%, -50%);
         text-align: center;

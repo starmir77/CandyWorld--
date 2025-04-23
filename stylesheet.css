@@ -183,6 +183,7 @@ canvas.webgl {
 .uiPanel h1 {
     color: var(--color-hotpink);
     font-size: var(--font-xxl);
+    width: 70%;
     font-weight: 700;
     text-align: left;
     margin-bottom: 1.25rem;
@@ -378,13 +379,13 @@ canvas.webgl {
     .uiPanel button {
         width: 250px;
         font-size: 1rem;
-        margin-left: 15px;
+        
     }
 
     .uiPanel button:hover {
         width: 250px;
         font-size: 1rem;
-        margin-left: 15px;
+    
     }
 
     .scorePanel {

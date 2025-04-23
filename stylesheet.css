@@ -309,7 +309,6 @@ canvas.webgl {
     .uiPanel button {
         width: 250px;
         font-size: 1rem;
-        margin: 10px 0 0 0;
     }
 
     .scorePanel {
@@ -358,19 +357,18 @@ canvas.webgl {
         text-align: center;
     }
 
-    .uiPanel {
+    .uiPanel h1{
         width: 90%;
-        font-size: 0.55rem;
+        font-size: 3rem;
         padding: 1rem;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        text-align: center;
+        margin-right: auto;
+        text-align: left;
     }
 
     .uiPanel button {
         width: 250px;
         font-size: 1rem;
-        margin: 10px auto auto 0;
+        margin-left: 15px;
     }
 
     .scorePanel {
@@ -403,7 +401,7 @@ canvas.webgl {
 
     @media (max-width: 320px) {
         .uiPanel {
-            font-size: 0.55rem;
+            font-size: 0.5rem;
         }
     }
 

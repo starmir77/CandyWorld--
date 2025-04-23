@@ -411,6 +411,7 @@ canvas.webgl {
     @media (max-width: 320px) {
         .uiPanel h1 {
             font-size: var(--font-lg);
+            margin-bottom: 0.50rem;
             
         }
 

@@ -400,4 +400,11 @@ canvas.webgl {
         width: 80px;
         height: 80px;
     }
+
+    @media (max-width: 320px) {
+        .uiPanel {
+            font-size: 0.55rem;
+        }
+    }
+
 }

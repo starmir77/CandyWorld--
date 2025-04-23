@@ -370,7 +370,7 @@ canvas.webgl {
 
     .uiPanel h1{
         width: 90%;
-        font-size: 1.5rem;
+        font-size: 2.5rem;
         padding: 0.25rem;
         margin-right: auto;
         margin-bottom: 0rem;
@@ -379,14 +379,14 @@ canvas.webgl {
     }
 
     .uiPanel button {
-        width: 250px;
-        font-size: 1rem;
+        width: 180px;
+        font-size: 0.75rem;
         
     }
 
     .uiPanel button:hover {
-        width: 250px;
-        font-size: 1rem;
+        width: 180px;
+        font-size: 0.75rem;
     
     }
 

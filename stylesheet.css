@@ -298,17 +298,26 @@ canvas.webgl {
     }
 
     .uiPanel {
-        width: 90%;
-        font-size: 0.95rem;
+        width: 80%;
         padding: 1rem;
         left: 50%;
         transform: translate(-50%, -50%);
         text-align: center;
+        top: 50%;
+    }
+
+    .uiPanel h1 {
+        font-size: var(--font-xl);
     }
 
     .uiPanel button {
         width: 250px;
-        font-size: 1rem;
+        font-size: 0.85rem;
+    }
+
+    .uiPanel button:hover {
+        width: 250px;
+        font-size: 0.85rem;
     }
 
     .scorePanel {
@@ -400,8 +409,19 @@ canvas.webgl {
     }
 
     @media (max-width: 320px) {
-        .uiPanel {
-            font-size: 0.5rem;
+        .uiPanel h1 {
+            font-size: var(--font-lg);
+            
+        }
+
+        .uiPanel button {
+            width: 200px;
+            font-size: var(--font-xsm);
+        }
+
+        .uiPanel button:hover {
+            width: 200px;
+            font-size: var(--font-xsm);
         }
     }
 

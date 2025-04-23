@@ -369,7 +369,7 @@ canvas.webgl {
     .uiPanel h1{
         width: 90%;
         font-size: 3rem;
-        padding: 1rem;
+        padding: 0.25rem;
         margin-right: auto;
         margin-bottom: 0rem;
         text-align: left;
@@ -419,6 +419,7 @@ canvas.webgl {
         .uiPanel h1 {
             font-size: var(--font-lg);
             margin-bottom: 0.50rem;
+            padding: 0.25rem;
             
         }
 

@@ -375,7 +375,7 @@ canvas.webgl {
         margin-right: auto;
         margin-bottom: 0rem;
         text-align: left;
-        color: black;
+        color: var(--color-hotpink);
     }
 
     .uiPanel button {

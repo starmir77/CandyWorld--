@@ -7,6 +7,7 @@ import { showFinalMessage } from "./uiManager.js";
 
 let fallingCandies = []; // Track falling candies
 let spawnLoop; // store interval reference so we can modify, stop later on
+const MAX_ACTIVE_CANDIES = 100;
 
 
 // Spawn Candy at Random Position relative to world and camera positions
@@ -41,13 +42,24 @@ function updateFallingCandies() {
 
 
 function startSpawning(worldModel, scene, worldPosition, worldRadius) {
-    
+
     if (!worldModel) return console.error("World Candy not loaded yet, waiting...");
 
     clearInterval(spawnLoop);
 
     // Remove candies
-    fallingCandies.forEach(candy => scene.remove(candy));
+    fallingCandies.forEach(candy => {
+        scene.remove(candy);
+        if (candy.geometry) candy.geometry.dispose();
+        if (candy.material) candy.material.dispose();
+        if (candy.material) {
+            if (Array.isArray(candy.material)) {
+                candy.material.forEach(m => m.dispose());
+            } else {
+                candy.material.dispose();
+            }
+        }
+    });
     fallingCandies = [];
 
     // Start spawning loop
@@ -58,7 +70,21 @@ function startSpawning(worldModel, scene, worldPosition, worldRadius) {
 
         scene.add(candyClone);
         fallingCandies.push(candyClone);
-    
+
+        //Remove oldest candy once we reach max
+        if (fallingCandies.lenght > MAX_ACTIVE_CANDIES) {
+            const oldCandy = fallingCandies.shift();
+            scene.remove(oldCandy);
+            if (oldCandy.geometry) oldCandy.geometry.dispose();
+            if (oldCandy.material) {
+                if (Array.isArray(oldCandy.material)) {
+                    oldCandy.material.forEach(m => m.dispose());
+                } else {
+                    oldCandy.material.dispose();
+                }
+            }
+        }
+
     }, gameState.spawnInterval);
 }
 
@@ -80,7 +106,7 @@ function increaseScore() {
     }
 }
 
-  
+
 
 function stopSpawning() {
     if (spawnLoop) {

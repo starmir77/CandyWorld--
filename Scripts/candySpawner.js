@@ -30,14 +30,23 @@ function getCandySpawnPosition(worldPosition, worldRadius, cameraPosition) {
 
 //Make Candies Fall
 function updateFallingCandies() {
-    fallingCandies.forEach((candy, index) => {
-        candy.position.y -= gameState.fallSpeed; //Adjust fall speed
+    for (let i = fallingCandies.length - 1; i >= 0; i--) {
+        const candy = fallingCandies[i];
+        candy.position.y -= gameState.fallSpeed;
 
         if (candy.position.y < -30) {
             scene.remove(candy);
-            fallingCandies.splice(index, 1);
+            if (candy.geometry) candy.geometry.dispose();
+            if (candy.material) {
+                if (Array.isArray(candy.material)) {
+                    candy.material.forEach(m => m.dispose());
+                } else {
+                    candy.material.dispose();
+                }
+            }
+            fallingCandies.splice(i, 1);
         }
-    });
+    }
 }
 
 

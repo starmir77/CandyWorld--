@@ -7,7 +7,9 @@ import { showFinalMessage } from "./uiManager.js";
 
 let fallingCandies = []; // Track falling candies
 let spawnLoop; // store interval reference so we can modify, stop later on
+let candyUpdateIndex;
 const MAX_ACTIVE_CANDIES = 100;
+const CANDIES_PER_FRAME = 5;
 
 
 // Spawn Candy at Random Position relative to world and camera positions
@@ -30,8 +32,12 @@ function getCandySpawnPosition(worldPosition, worldRadius, cameraPosition) {
 
 //Make Candies Fall
 function updateFallingCandies() {
-    for (let i = fallingCandies.length - 1; i >= 0; i--) {
-        const candy = fallingCandies[i];
+    for (let i = 0; i < CANDIES_PER_FRAME; i++) {
+        if (fallingCandies.length === 0) break;
+
+        candyUpdateIndex = candyUpdateIndex % fallingCandies.length;
+        const candy = fallingCandies[candyUpdateIndex];
+
         candy.position.y -= gameState.fallSpeed;
 
         if (candy.position.y < -30) {
@@ -44,10 +50,14 @@ function updateFallingCandies() {
                     candy.material.dispose();
                 }
             }
-            fallingCandies.splice(i, 1);
+            fallingCandies.splice(candyUpdateIndex, 1);
+        } else {
+            candyUpdateIndex++;
+
         }
     }
 }
+
 
 
 function startSpawning(worldModel, scene, worldPosition, worldRadius) {

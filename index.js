@@ -110,20 +110,23 @@ function onMouseClick(event) {
 // Load Skybox Assets
 loadSkyboxAssets();
 
-// 🌀 Animation Loop to Continuously Render
+let frameCount = 0;
+
+// Animation Loop to Continuously Render
 function animate() {
     requestAnimationFrame(animate);
+    frameCount++;
     renderer.render(scene, camera);
 
-    updateFallingCandies();
-    // In your animate loop
-    ambientLight.intensity = 5 + Math.sin(Date.now() * 0.001) * 0.5;
+    if (frameCount % 2 === 0) {
+        updateFallingCandies();
+        ambientLight.intensity = 5 + Math.sin(Date.now() * 0.001) * 0.5;
+    }
 
-    planetMeshes.forEach(planet => {
-        planet.rotation.y += 0.001; // horizontal spin
-    });
+    // planetMeshes.forEach(planet => {
+    //     planet.rotation.y += 0.001; 
+    // });
 
-    console.log("animating");
 }
 animate();
 

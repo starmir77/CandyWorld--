@@ -1,0 +1,12 @@
+# macOS system files
+.DS_Store
+
+# VS Code project files
+*.code-workspace
+
+# Node modules (they’re heavy and should not be tracked)
+node_modules/
+
+# Three.js (if you manually copied the library files)
+build/
+libs/

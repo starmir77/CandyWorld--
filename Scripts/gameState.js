@@ -5,7 +5,7 @@ const gameState = {
     gameStarted: false,
     fallSpeed: 0.025,
     levelSpeed: 0.5, // decrease/increase falling candy interval
-    nextLevelScore: 15,
+    nextLevelScore: 10,
   };
   
   export default gameState;

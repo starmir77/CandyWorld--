@@ -309,7 +309,7 @@ canvas.webgl {
 
     .uiPanel h1 {
         font-size: var(--font-xl);
-        color: white;
+        color: var(--color-hotpink);
     }
 
     .uiPanel button {

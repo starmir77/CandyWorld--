@@ -30,82 +30,78 @@ function getCandySpawnPosition(worldPosition, worldRadius, cameraPosition) {
     return new THREE.Vector3(candyX, spawnHeight, candyZ);
 }
 
-//Make Candies Fall
-function updateFallingCandies() {
-    for (let i = 0; i < CANDIES_PER_FRAME; i++) {
-        if (fallingCandies.length === 0) break;
 
-        candyUpdateIndex = candyUpdateIndex % fallingCandies.length;
-        const candy = fallingCandies[candyUpdateIndex];
+function updateFallingCandies() {
+    for (let i = fallingCandies.length - 1; i >= 0; i--) {
+        const candy = fallingCandies[i];
 
         candy.position.y -= gameState.fallSpeed;
 
         if (candy.position.y < -30) {
             scene.remove(candy);
-            if (candy.geometry) candy.geometry.dispose();
-            if (candy.material) {
-                if (Array.isArray(candy.material)) {
-                    candy.material.forEach(m => m.dispose());
-                } else {
-                    candy.material.dispose();
-                }
-            }
-            fallingCandies.splice(candyUpdateIndex, 1);
-        } else {
-            candyUpdateIndex++;
 
+            if (candy.geometry) candy.geometry.dispose();
+
+            if (Array.isArray(candy.material)) {
+                candy.material.forEach(m => m.dispose?.());
+            } else if (candy.material) {
+                candy.material.dispose?.();
+            }
+
+            fallingCandies.splice(i, 1);
         }
     }
 }
 
 
-
 function startSpawning(worldModel, scene, worldPosition, worldRadius) {
-
-    if (!worldModel) return console.error("World Candy not loaded yet, waiting...");
+    if (!worldModel) {
+        console.error("World Candy not loaded yet, waiting...");
+        return;
+    }
 
     clearInterval(spawnLoop);
 
-    // Remove candies
+    // Clear and dispose old candies
     fallingCandies.forEach(candy => {
         scene.remove(candy);
         if (candy.geometry) candy.geometry.dispose();
-        if (candy.material) candy.material.dispose();
-        if (candy.material) {
-            if (Array.isArray(candy.material)) {
-                candy.material.forEach(m => m.dispose());
-            } else {
-                candy.material.dispose();
-            }
+        if (Array.isArray(candy.material)) {
+            candy.material.forEach(m => m.dispose());
+        } else if (candy.material) {
+            candy.material.dispose();
         }
     });
     fallingCandies = [];
 
-    // Start spawning loop
+    let lastSpawnTime = -1;
+
     spawnLoop = setInterval(() => {
+        const currentTime = performance.now();
+        if (lastSpawnTime !== -1 && currentTime - lastSpawnTime < 100) return;
+        lastSpawnTime = currentTime;
+
         const candyClone = worldModel.clone();
-        candyClone.position.copy(getCandySpawnPosition(worldPosition, worldRadius, camera.position)); // Pass worldPosition, worldRadius, and camera.position
+        candyClone.position.copy(getCandySpawnPosition(worldPosition, worldRadius, camera.position));
         candyClone.userData.clickable = true;
 
         scene.add(candyClone);
         fallingCandies.push(candyClone);
 
-        //Remove oldest candy once we reach max
-        if (fallingCandies.lenght > MAX_ACTIVE_CANDIES) {
+
+        if (fallingCandies.length > MAX_ACTIVE_CANDIES) {
             const oldCandy = fallingCandies.shift();
             scene.remove(oldCandy);
             if (oldCandy.geometry) oldCandy.geometry.dispose();
-            if (oldCandy.material) {
-                if (Array.isArray(oldCandy.material)) {
-                    oldCandy.material.forEach(m => m.dispose());
-                } else {
-                    oldCandy.material.dispose();
-                }
+            if (Array.isArray(oldCandy.material)) {
+                oldCandy.material.forEach(m => m.dispose());
+            } else if (oldCandy.material) {
+                oldCandy.material.dispose();
             }
         }
-
     }, gameState.spawnInterval);
 }
+
 
 function increaseScore() {
     gameState.score++;

@@ -118,10 +118,10 @@ function animate() {
     frameCount++;
     renderer.render(scene, camera);
 
-    if (frameCount % 2 === 0) {
+    
         updateFallingCandies();
         ambientLight.intensity = 5 + Math.sin(Date.now() * 0.001) * 0.5;
-    }
+    
 
     // planetMeshes.forEach(planet => {
     //     planet.rotation.y += 0.001; 

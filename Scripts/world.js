@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export const universeBackground =  'Assets/Candies/candySpaceResized.exr';
+export const universeBackground =  'Assets/Candies/candySpace30pc.exr';
 
 export const worlds = {
   Gumdrop: {
@@ -19,7 +19,7 @@ export const worlds = {
       detail: 4
     },
     interiorSky: {
-      texture: "Assets/Candies/gumdropWorld.png",
+      texture: "Assets/Candies/gumdropWorld.webp",
       radius: 8
     }
   },
@@ -39,7 +39,7 @@ export const worlds = {
       detail: 3
     },
     interiorSky: {
-      texture: "Assets/Candies/chocoWorld.png",
+      texture: "Assets/Candies/chocoWorld.webp",
       radius: 6
     }
   },
@@ -59,7 +59,7 @@ export const worlds = {
       detail: 4
     },
     interiorSky: {
-      texture: "Assets/Candies/cupcakeyWorld.png",
+      texture: "Assets/Candies/cupcakeyWorld.webp",
       radius: 7
     }
   }

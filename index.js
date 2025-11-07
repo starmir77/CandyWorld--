@@ -58,19 +58,22 @@ window.addEventListener("levelUp", () => {
 
 })
 
-// Listen for Clicks 
+// Reusable objects for click detection (prevents garbage collection)
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+// Listen for Clicks
 window.addEventListener("click", onMouseClick);
 
 //  Destroy Candy on Click and increase score
 function onMouseClick(event) {
-    // convert mouse posititon to normalized device coordinates ( -1, 1)
-    const mouse = new THREE.Vector2(
+    // Convert mouse position to normalized device coordinates ( -1, 1)
+    mouse.set(
         (event.clientX / window.innerWidth) * 2 - 1,
         -(event.clientY / window.innerHeight) * 2 + 1
     );
 
-    // Cast a ray from the camera to detect objects 
-    const raycaster = new THREE.Raycaster();
+    // Cast a ray from the camera to detect objects
     raycaster.setFromCamera(mouse, camera);
 
     //Check for intersections

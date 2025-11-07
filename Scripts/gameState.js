@@ -4,7 +4,7 @@ const gameState = {
     spawnInterval: 1000,
     gameStarted: false,
     fallSpeed: 0.025,
-    levelSpeed: 0.5, // decrease/increase falling candy interval
+    levelSpeed: 0.9, // multiplier for spawn interval (0.9 = 10% faster each level)
     nextLevelScore: 10,
   };
   

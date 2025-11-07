@@ -4,7 +4,7 @@ import { scene, camera, pmremGenerator } from './sceneSetup.js';
 import gameState from './gameState.js';
 import { startSpawning, stopSpawning } from './candySpawner.js';
 import { worlds } from './world.js';
-import { hideInterface, showInstructions, showScorePanel } from './uiManager.js';
+import { hideInterface, showInstructions, showScorePanel, showErrorMessage } from './uiManager.js';
 import { loadTextureAsync, loadGLTFAsync, playTransitionSound, loadEXRAsync } from './assetLoader.js';
 
 
@@ -27,32 +27,47 @@ function addNewSkyDome(world, worldPosition) {
 }
 
 async function loadCandyModel(world, worldPosition) {
+    try {
+        const gltf = await loadGLTFAsync(world.model);
+        const candyModel = gltf.scene;
 
-    const gltf = await loadGLTFAsync(world.model);
-    const candyModel = gltf.scene;
+        // Fix chocolate world shading
+        if (world.name === "Chocoworld") {
+            candyModel.traverse(child => {
+                if (child.isMesh) {
+                    child.geometry.computeVertexNormals();
+                    child.material = new THREE.MeshStandardMaterial({
+                        color: 0x8b4513,
+                        metalness: 0.3,
+                        roughness: 0.6,
+                    });
+                }
+            });
+        }
 
-    // Fix chocolate world shading
-    if (world.name === "Chocoworld") {
-        candyModel.traverse(child => {
-            if (child.isMesh) {
-                child.geometry.computeVertexNormals();
-                child.material = new THREE.MeshStandardMaterial({
-                    color: 0x8b4513,
-                    metalness: 0.3,
-                    roughness: 0.6,
-                });
-            }
+        if (world.clickSound) {
+            currentClickSound = new Audio(world.clickSound);
+        }
+
+        candyModel.scale.copy(world.scale);
+        candyModel.rotation.copy(world.rotation);
+
+        startSpawning(candyModel, scene, worldPosition, world.geometry.radius);
+
+    } catch (error) {
+        console.error(`Failed to load candy model for ${world.name}:`, error);
+
+        // Create fallback simple geometry
+        const fallbackGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+        const fallbackMaterial = new THREE.MeshStandardMaterial({
+            color: world.color,
+            emissive: world.emissive,
+            emissiveIntensity: 0.5
         });
+        const fallbackModel = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
+
+        startSpawning(fallbackModel, scene, worldPosition, world.geometry.radius);
     }
-
-    if (world.clickSound) {
-        currentClickSound = new Audio(world.clickSound);
-    }
-
-    candyModel.scale.copy(world.scale);
-    candyModel.rotation.copy(world.rotation);
-
-    startSpawning(candyModel, scene, worldPosition, world.geometry.radius);
 }
 
 export function animateCameraToPosition(start, end, lookTarget, duration, onComplete) {
@@ -134,28 +149,41 @@ export async function loadSkyboxAssets() {
     for (const worldName in worlds) {
         const world = worlds[worldName];
         if (world.interiorSky?.texture) {
-            const promise = loadTextureAsync(world.interiorSky.texture).then(texture => {
-                texture.encoding = THREE.sRGBEncoding;
-                texture.mapping = THREE.EquirectangularReflectionMapping;
+            const promise = loadTextureAsync(world.interiorSky.texture)
+                .then(texture => {
+                    texture.encoding = THREE.sRGBEncoding;
+                    texture.mapping = THREE.EquirectangularReflectionMapping;
 
-                skyboxMaterials[worldName] = new THREE.MeshBasicMaterial({
-                    map: texture,
-                    side: THREE.BackSide,
-                    depthWrite: false,
+                    skyboxMaterials[worldName] = new THREE.MeshBasicMaterial({
+                        map: texture,
+                        side: THREE.BackSide,
+                        depthWrite: false,
+                    });
+                })
+                .catch(error => {
+                    console.error(`Failed to load skybox for ${worldName}:`, error);
+                    // Create fallback solid color material
+                    skyboxMaterials[worldName] = new THREE.MeshBasicMaterial({
+                        color: world.color,
+                        side: THREE.BackSide,
+                        depthWrite: false,
+                    });
                 });
-            });
             loadPromises.push(promise);
         }
     }
 
-    await Promise.all(loadPromises);
-    console.log(" All Skyboses loaded");
+    try {
+        await Promise.all(loadPromises);
+        console.log("All skyboxes loaded");
+    } catch (error) {
+        console.error("Error loading skybox assets:", error);
+        // Continue anyway with fallback materials
+    }
 }
 
 export async function loadEXRBackground(path) {
-
     try {
-
         const texture = await loadEXRAsync(path);
         const envMap = pmremGenerator.fromEquirectangular(texture).texture;
 
@@ -167,9 +195,14 @@ export async function loadEXRBackground(path) {
         texture.dispose();
         pmremGenerator.dispose();
 
-
     } catch (error) {
-        console.error("error loading exr background:", error);
+        console.error("Error loading EXR background:", error);
+
+        // Show error to user
+        showErrorMessage("Failed to load the CandyWorld environment. Please check your connection and try again.");
+
+        // Set fallback background color
+        scene.background = new THREE.Color(0x1a0033); // Dark purple space color
     }
 }
 

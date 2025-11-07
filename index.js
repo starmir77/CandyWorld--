@@ -98,7 +98,14 @@ function onMouseClick(event) {
             // Play sound on clicked candy
             if (currentClickSound) {
                 currentClickSound.currentTime = 0;
-                currentClickSound.play();
+                const playPromise = currentClickSound.play();
+
+                // Handle autoplay policy
+                if (playPromise !== undefined) {
+                    playPromise.catch(err => {
+                        console.warn('Click sound blocked by browser policy:', err);
+                    });
+                }
             }
 
             // remove from falling candies array

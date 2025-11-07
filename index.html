@@ -19,6 +19,12 @@
     <p class="loadingText">Loading CandyWorld...</p>
   </div>
 
+  <div id="errorOverlay" class="loadingOverlay hidden" style="background-color: rgba(0, 0, 0, 0.9);">
+    <h2 style="color: #ff6b6b; font-family: 'Fredoka', sans-serif; margin-bottom: 1rem;">Oops! Something went wrong</h2>
+    <p id="errorMessage" style="color: white; font-family: 'Fredoka', sans-serif; margin-bottom: 1.5rem;">Having trouble loading CandyWorld...</p>
+    <button id="retryButton" class="restartButton">Try Again</button>
+  </div>
+
   <canvas class="webgl"></canvas>
   <script type="importmap">
     {

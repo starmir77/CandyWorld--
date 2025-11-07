@@ -56,3 +56,29 @@ export function showInstructions(){
         }, 4000);
     }
 }
+
+export function showErrorMessage(message) {
+    const errorOverlay = document.getElementById("errorOverlay");
+    const errorMessage = document.getElementById("errorMessage");
+    const loadingOverlay = document.getElementById("loadingOverlay");
+
+    if (loadingOverlay) {
+        loadingOverlay.style.display = "none";
+    }
+
+    if (errorMessage) {
+        errorMessage.textContent = message;
+    }
+
+    if (errorOverlay) {
+        errorOverlay.classList.remove("hidden");
+    }
+
+    // Setup retry button
+    const retryButton = document.getElementById("retryButton");
+    if (retryButton) {
+        retryButton.addEventListener("click", () => {
+            location.reload();
+        }, { once: true });
+    }
+}

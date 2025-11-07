@@ -46,6 +46,13 @@ export function showScorePanel() {
     if (scorePanel) {
         scorePanel.classList.remove('hidden');
     }
+
+    // Initialize high score display
+    const highScoreDisplay = document.getElementById('highScoreDisplay');
+    if (highScoreDisplay) {
+        const highScore = parseInt(localStorage.getItem('candyworld_highscore')) || 0;
+        highScoreDisplay.textContent = "High Score: " + highScore;
+    }
 }
 
 export function showInstructions(){
@@ -56,6 +63,24 @@ export function showInstructions(){
         setTimeout(() => {
             instructions.classList.add("hidden");
         }, GAME_CONFIG.INSTRUCTION_DURATION);
+    }
+}
+
+export function enableStartButton() {
+    const startButton = document.getElementById("startButton");
+    if (startButton) {
+        startButton.disabled = false;
+        startButton.style.opacity = "1";
+        startButton.style.cursor = "pointer";
+    }
+}
+
+export function disableStartButton() {
+    const startButton = document.getElementById("startButton");
+    if (startButton) {
+        startButton.disabled = true;
+        startButton.style.opacity = "0.5";
+        startButton.style.cursor = "not-allowed";
     }
 }
 

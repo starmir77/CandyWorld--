@@ -11,6 +11,66 @@ import { GAME_CONFIG, VISUAL_CONFIG } from './constants.js';
 
 export let currentClickSound = null;
 
+// Cache for preloaded candy models
+const candyModelCache = {};
+
+// Preload all candy models during initial load
+export async function preloadCandyModels() {
+    const loadPromises = [];
+
+    for (const worldName in worlds) {
+        const world = worlds[worldName];
+        const promise = loadGLTFAsync(world.model)
+            .then(gltf => {
+                const candyModel = gltf.scene;
+
+                // Fix chocolate world shading
+                if (world.name === "Chocoworld") {
+                    candyModel.traverse(child => {
+                        if (child.isMesh) {
+                            child.geometry.computeVertexNormals();
+                            child.material = new THREE.MeshStandardMaterial({
+                                color: 0x8b4513,
+                                metalness: 0.3,
+                                roughness: 0.6,
+                            });
+                        }
+                    });
+                }
+
+                candyModel.scale.copy(world.scale);
+                candyModel.rotation.copy(world.rotation);
+
+                // Cache the model
+                candyModelCache[worldName] = candyModel;
+                incrementLoadingProgress();
+            })
+            .catch(error => {
+                console.error(`Failed to preload candy model for ${worldName}:`, error);
+                // Create fallback
+                const fallbackGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+                const fallbackMaterial = new THREE.MeshStandardMaterial({
+                    color: world.color,
+                    emissive: world.emissive,
+                    emissiveIntensity: 0.5
+                });
+                const fallbackModel = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
+                fallbackModel.scale.copy(world.scale);
+                fallbackModel.rotation.copy(world.rotation);
+                candyModelCache[worldName] = fallbackModel;
+                incrementLoadingProgress();
+            });
+        loadPromises.push(promise);
+    }
+
+    try {
+        await Promise.all(loadPromises);
+        console.log("All candy models preloaded");
+    } catch (error) {
+        console.error("Error preloading candy models:", error);
+    }
+}
+
 function removeOldSkyDome() {
     const oldDome = scene.getObjectByName('interiorSky');
     if (oldDome) scene.remove(oldDome);
@@ -28,47 +88,20 @@ function addNewSkyDome(world, worldPosition) {
 }
 
 async function loadCandyModel(world, worldPosition) {
-    try {
-        const gltf = await loadGLTFAsync(world.model);
-        const candyModel = gltf.scene;
+    // Use preloaded model from cache
+    const candyModel = candyModelCache[world.name];
 
-        // Fix chocolate world shading
-        if (world.name === "Chocoworld") {
-            candyModel.traverse(child => {
-                if (child.isMesh) {
-                    child.geometry.computeVertexNormals();
-                    child.material = new THREE.MeshStandardMaterial({
-                        color: 0x8b4513,
-                        metalness: 0.3,
-                        roughness: 0.6,
-                    });
-                }
-            });
-        }
-
-        if (world.clickSound) {
-            currentClickSound = new Audio(world.clickSound);
-        }
-
-        candyModel.scale.copy(world.scale);
-        candyModel.rotation.copy(world.rotation);
-
-        startSpawning(candyModel, scene, worldPosition, world.geometry.radius);
-
-    } catch (error) {
-        console.error(`Failed to load candy model for ${world.name}:`, error);
-
-        // Create fallback simple geometry
-        const fallbackGeometry = new THREE.SphereGeometry(0.5, 16, 16);
-        const fallbackMaterial = new THREE.MeshStandardMaterial({
-            color: world.color,
-            emissive: world.emissive,
-            emissiveIntensity: 0.5
-        });
-        const fallbackModel = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
-
-        startSpawning(fallbackModel, scene, worldPosition, world.geometry.radius);
+    if (!candyModel) {
+        console.error(`Candy model for ${world.name} not found in cache!`);
+        return;
     }
+
+    // Load click sound
+    if (world.clickSound) {
+        currentClickSound = new Audio(world.clickSound);
+    }
+
+    startSpawning(candyModel, scene, worldPosition, world.geometry.radius);
 }
 
 export function animateCameraToPosition(start, end, lookTarget, duration, onComplete) {
@@ -147,9 +180,10 @@ const skyboxMaterials = {}; // Reuse your original global object
 export async function loadSkyboxAssets() {
     const loadPromises = [];
 
-    // Count total assets to load (3 skyboxes + 1 EXR background)
+    // Count total assets to load (3 skyboxes + 1 EXR background + 3 candy models)
     const worldCount = Object.keys(worlds).filter(name => worlds[name].interiorSky?.texture).length;
-    initLoadingProgress(worldCount + 1); // +1 for EXR background
+    const candyModelCount = Object.keys(worlds).length;
+    initLoadingProgress(worldCount + 1 + candyModelCount); // skyboxes + EXR + candy models
 
     for (const worldName in worlds) {
         const world = worlds[worldName];

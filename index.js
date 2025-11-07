@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 
-import { flyToWorld, loadSkyboxAssets, currentClickSound, loadEXRBackground, createStars } from './Scripts/worldManager.js';
+import { flyToWorld, loadSkyboxAssets, currentClickSound, loadEXRBackground, createStars, preloadCandyModels } from './Scripts/worldManager.js';
 import { updateFallingCandies, fallingCandies, increaseScore, stopSpawning } from './Scripts/candySpawner.js';
 import { worlds, createPlanetMeshes, universeBackground } from './Scripts/world.js';
 import gameState from './Scripts/gameState.js';
-import { hideStartUI, toggleTransitionMessage, showFinalMessage } from './Scripts/uiManager.js';
+import { hideStartUI, toggleTransitionMessage, showFinalMessage, enableStartButton, disableStartButton } from './Scripts/uiManager.js';
 import { scene, camera, renderer, ambientLight, directionalLight } from './Scripts/sceneSetup.js';
 import { GAME_CONFIG, VISUAL_CONFIG } from './Scripts/constants.js';
 
@@ -26,7 +26,28 @@ planetMeshes.forEach(mesh => scene.add(mesh));
 // Add stars to scene
 createStars();
 
-// Start Button 
+// Disable start button until assets are loaded
+disableStartButton();
+
+// Sound management
+let soundEnabled = true;
+
+// Sound Toggle Button
+const soundToggle = document.getElementById('soundToggle');
+if (soundToggle) {
+    soundToggle.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
+        soundToggle.classList.toggle('muted');
+
+        // Mute current click sound if playing
+        if (currentClickSound) {
+            currentClickSound.muted = !soundEnabled;
+        }
+    });
+}
+
+// Start Button
 document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("startButton").addEventListener("click", (e) => {
         const world = e.target.dataset.targetWorld;
@@ -82,8 +103,8 @@ function onMouseClick(event) {
     // Cast a ray from the camera to detect objects
     raycaster.setFromCamera(mouse, camera);
 
-    //Check for intersections
-    const intersects = raycaster.intersectObjects(scene.children, true);
+    // Check for intersections only with falling candies (performance optimization)
+    const intersects = raycaster.intersectObjects(fallingCandies, true);
 
     if (intersects.length > 0) {
         let clickedObject = intersects[0].object;
@@ -102,7 +123,7 @@ function onMouseClick(event) {
             increaseScore();
 
             // Play sound on clicked candy
-            if (currentClickSound) {
+            if (currentClickSound && soundEnabled) {
                 currentClickSound.currentTime = 0;
                 const playPromise = currentClickSound.play();
 
@@ -123,8 +144,14 @@ function onMouseClick(event) {
     }
 }
 
-// Load Skybox Assets
-loadSkyboxAssets();
+// Load Skybox Assets and Candy Models
+loadSkyboxAssets().then(() => {
+    return preloadCandyModels();
+}).then(() => {
+    // Enable start button once all assets are loaded
+    enableStartButton();
+    console.log("All assets loaded, game ready to start");
+});
 
 // Animation Loop to Continuously Render
 function animate() {

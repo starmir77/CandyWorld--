@@ -7,9 +7,7 @@ import { GAME_CONFIG } from "./constants.js";
 
 let fallingCandies = []; // Track falling candies
 let spawnLoop; // store interval reference so we can modify, stop later on
-let candyUpdateIndex;
 const MAX_ACTIVE_CANDIES = GAME_CONFIG.MAX_ACTIVE_CANDIES;
-const CANDIES_PER_FRAME = 5;
 
 
 // Spawn Candy at Random Position relative to world and camera positions
@@ -106,6 +104,13 @@ function startSpawning(worldModel, scene, worldPosition, worldRadius) {
 function increaseScore() {
     gameState.score++;
     document.getElementById("scoreDisplay").textContent = "Score: " + gameState.score;
+
+    // Check and update high score
+    if (gameState.score > gameState.highScore) {
+        gameState.highScore = gameState.score;
+        localStorage.setItem('candyworld_highscore', gameState.score);
+        document.getElementById("highScoreDisplay").textContent = "High Score: " + gameState.highScore;
+    }
 
     if (gameState.score % gameState.nextLevelScore === 0) {
         gameState.spawnInterval *= gameState.levelSpeed; // decrease interval falling candy interval

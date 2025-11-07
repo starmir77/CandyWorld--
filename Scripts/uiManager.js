@@ -20,16 +20,22 @@ export function toggleTransitionMessage(nextWorldName, show = true) {
     }
 }
 
+let finalMessageShown = false;
+
 export function showFinalMessage() {
+    // Prevent duplicate calls
+    if (finalMessageShown) return;
+    finalMessageShown = true;
+
     const finale = document.getElementById("finaleMessage");
     finale.classList.remove("hidden");
 
-    // Restart Button
+    // Restart Button - use { once: true } to auto-cleanup listener
     const restBttn = document.getElementById("restartButton");
     if (restBttn) {
-        document.getElementById("restartButton").addEventListener("click", () => {
+        restBttn.addEventListener("click", () => {
             location.reload();
-        });
+        }, { once: true });
     }
 }
 

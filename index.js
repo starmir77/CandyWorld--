@@ -118,23 +118,12 @@ function animate() {
     frameCount++;
     renderer.render(scene, camera);
 
-    
-        updateFallingCandies();
-        ambientLight.intensity = 5 + Math.sin(Date.now() * 0.001) * 0.5;
-    
-
-    // planetMeshes.forEach(planet => {
-    //     planet.rotation.y += 0.001; 
-    // });
-
+    updateFallingCandies();
+    ambientLight.intensity = 5 + Math.sin(Date.now() * 0.001) * 0.5;
 }
 animate();
 
-///////
-
-let currentWorldPos = new THREE.Vector3(0, 0, 0);
-
-export { scene, camera, currentClickSound, worldOrder, currentWorldPos };
+export { scene, camera, currentClickSound, worldOrder };
 
 
 

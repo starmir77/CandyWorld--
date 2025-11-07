@@ -104,17 +104,29 @@ async function loadCandyModel(world, worldPosition) {
     startSpawning(candyModel, scene, worldPosition, world.geometry.radius);
 }
 
+/**
+ * Animates camera movement from start to end position using cubic easing
+ * @param {THREE.Vector3} start - Starting camera position
+ * @param {THREE.Vector3} end - Target camera position
+ * @param {THREE.Vector3} lookTarget - Point camera should look at during movement
+ * @param {number} duration - Animation duration in milliseconds
+ * @param {Function} onComplete - Callback executed when animation completes
+ */
 export function animateCameraToPosition(start, end, lookTarget, duration, onComplete) {
     const startTime = performance.now();
 
     function animate(time) {
         const elapsed = time - startTime;
-        let t = Math.min(elapsed / duration, 1);
+        let t = Math.min(elapsed / duration, 1); // Normalize to 0-1 range
 
+        // Cubic ease-in-out for smooth camera movement
+        // Accelerates at start, decelerates at end for natural feel
+        // Reference: https://easings.net/#easeInOutCubic
         t = t < 0.5
-            ? 4 * t * t * t
-            : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            ? 4 * t * t * t                      // Ease in (first half)
+            : 1 - Math.pow(-2 * t + 2, 3) / 2;   // Ease out (second half)
 
+        // Interpolate camera position based on eased time value
         camera.position.lerpVectors(start, end, t);
         camera.lookAt(lookTarget);
 

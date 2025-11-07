@@ -42,7 +42,19 @@ export function incrementLoadingProgress() {
     updateLoadingProgress();
 }
 
-// Helper function to retry async operations
+/**
+ * Retries async operations with exponential backoff on failure
+ * Helps handle temporary network issues and flaky asset servers
+ * @param {Function} fn - Async function to retry
+ * @param {number} attempts - Maximum retry attempts
+ * @returns {Promise} Result of successful function execution
+ *
+ * Example backoff timing:
+ * - Attempt 1: immediate
+ * - Attempt 2: wait 1s (RETRY_DELAY * 2^0)
+ * - Attempt 3: wait 2s (RETRY_DELAY * 2^1)
+ * - Attempt 4: wait 4s (RETRY_DELAY * 2^2)
+ */
 async function retryWithBackoff(fn, attempts = RETRY_ATTEMPTS) {
     for (let i = 0; i < attempts; i++) {
         try {
@@ -51,14 +63,21 @@ async function retryWithBackoff(fn, attempts = RETRY_ATTEMPTS) {
             const isLastAttempt = i === attempts - 1;
             if (isLastAttempt) throw error;
 
-            const delay = RETRY_DELAY * Math.pow(2, i); // Exponential backoff
+            // Calculate exponential backoff delay (1s, 2s, 4s, 8s...)
+            const delay = RETRY_DELAY * Math.pow(2, i);
             console.warn(`Attempt ${i + 1} failed, retrying in ${delay}ms...`, error);
             await new Promise(resolve => setTimeout(resolve, delay));
         }
     }
 }
 
-// Helper function to add timeout to promises
+/**
+ * Wraps a promise with a timeout to prevent infinite loading
+ * Uses Promise.race to return whichever completes first: the operation or the timeout
+ * @param {Promise} promise - Promise to add timeout to
+ * @param {number} timeoutMs - Timeout duration in milliseconds
+ * @returns {Promise} Original promise with timeout behavior
+ */
 function withTimeout(promise, timeoutMs = ASSET_TIMEOUT) {
     return Promise.race([
         promise,

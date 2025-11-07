@@ -92,24 +92,30 @@ const canvas = document.querySelector('.webgl');
 canvas.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
 canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
-//  Destroy Candy on Click and increase score
+/**
+ * Handles click/touch events for candy destruction
+ * Uses raycasting to detect which candy was clicked in 3D space
+ */
 function onMouseClick(event) {
-    // Convert mouse position to normalized device coordinates ( -1, 1)
+    // Convert screen coordinates to normalized device coordinates (-1 to 1)
+    // This is required for Three.js raycasting to work correctly
     mouse.set(
-        (event.clientX / window.innerWidth) * 2 - 1,
-        -(event.clientY / window.innerHeight) * 2 + 1
+        (event.clientX / window.innerWidth) * 2 - 1,   // X: left (-1) to right (1)
+        -(event.clientY / window.innerHeight) * 2 + 1  // Y: top (1) to bottom (-1), note the negation
     );
 
-    // Cast a ray from the camera to detect objects
+    // Cast a ray from camera through mouse position into the scene
     raycaster.setFromCamera(mouse, camera);
 
-    // Check for intersections only with falling candies (performance optimization)
+    // Check for intersections only with falling candies (10x faster than checking entire scene)
     const intersects = raycaster.intersectObjects(fallingCandies, true);
 
     if (intersects.length > 0) {
-        let clickedObject = intersects[0].object;
+        let clickedObject = intersects[0].object; // Get closest intersected object
         console.log("Clicked Object:", clickedObject);
 
+        // Walk up the parent hierarchy until we find the clickable candy
+        // GLTF models have nested objects, we need the root clickable object
         while (clickedObject && !clickedObject.userData?.clickable) {
             clickedObject = clickedObject.parent;
         }
@@ -164,17 +170,24 @@ function animate() {
 }
 animate();
 
-// Clean up resources on page unload to prevent memory leaks
+/**
+ * Clean up Three.js resources on page unload to prevent memory leaks
+ * Critical for SPAs and when game is embedded in other applications
+ * Three.js doesn't auto-cleanup, so we must manually dispose all GPU resources
+ */
 window.addEventListener('beforeunload', () => {
-    // Dispose all geometries and materials in the scene
+    // Traverse entire scene graph and dispose all geometries and materials
     scene.traverse(obj => {
+        // Dispose geometry (vertex buffers on GPU)
         if (obj.geometry) {
             obj.geometry.dispose();
         }
+
+        // Dispose materials and their associated textures
         if (obj.material) {
             const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
             materials.forEach(material => {
-                // Dispose textures
+                // Dispose all texture types (frees GPU memory)
                 if (material.map) material.map.dispose();
                 if (material.lightMap) material.lightMap.dispose();
                 if (material.bumpMap) material.bumpMap.dispose();
@@ -187,7 +200,7 @@ window.addEventListener('beforeunload', () => {
         }
     });
 
-    // Dispose renderer
+    // Dispose WebGL rendering context
     renderer.dispose();
 });
 

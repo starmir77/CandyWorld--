@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta http-equiv="X-UA-Compatible" content="IE-edge">
   <title> CandyWorld </title>
   <link
@@ -17,6 +17,10 @@
   <div id="loadingOverlay" class="loadingOverlay">
     <img src="Assets/Candies/loadingCandyResized.webp" alt="Loading..." class="spinner" />
     <p class="loadingText">Loading CandyWorld...</p>
+    <div style="width: 200px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; margin-top: 1rem; overflow: hidden;">
+      <div id="loadingProgress" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff6b9d, #c255b3); transition: width 0.3s ease;"></div>
+    </div>
+    <p id="loadingPercentage" class="loadingText" style="font-size: 0.9rem; margin-top: 0.5rem;">0%</p>
   </div>
 
   <div id="errorOverlay" class="loadingOverlay hidden" style="background-color: rgba(0, 0, 0, 0.9);">

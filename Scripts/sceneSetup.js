@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GAME_CONFIG } from './constants.js';
 
 const canvas = document.querySelector('.webgl');
 const scene = new THREE.Scene();
@@ -12,7 +13,7 @@ const sizes = {
 // Renderer setup
 const renderer = new THREE.WebGLRenderer({ canvas: canvas });
 renderer.setSize(sizes.width, sizes.height);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, GAME_CONFIG.MAX_PIXEL_RATIO));
 
 //Camera Aspect Ratio
 const camera = new THREE.PerspectiveCamera(60, sizes.width / sizes.height, 0.1, 5000);
@@ -31,7 +32,7 @@ window.addEventListener('resize', ()=>{
 
     //Update renderer
     renderer.setSize(sizes.width, sizes.height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, GAME_CONFIG.MAX_PIXEL_RATIO));
 });
 
 // Lighting setup

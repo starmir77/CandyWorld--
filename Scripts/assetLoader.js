@@ -1,15 +1,46 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
+import { ASSET_CONFIG } from './constants.js';
 
-// Retry configuration
-const RETRY_ATTEMPTS = 3;
-const RETRY_DELAY = 1000; // ms
-const ASSET_TIMEOUT = 30000; // 30 seconds
+// Retry configuration from constants
+const RETRY_ATTEMPTS = ASSET_CONFIG.RETRY_ATTEMPTS;
+const RETRY_DELAY = ASSET_CONFIG.RETRY_DELAY;
+const ASSET_TIMEOUT = ASSET_CONFIG.ASSET_TIMEOUT;
 
 // Track queued audio for autoplay policy
 let queuedAudio = null;
 let audioUnlocked = false;
+
+// Loading progress tracking
+let totalAssets = 0;
+let loadedAssets = 0;
+
+export function updateLoadingProgress() {
+    if (totalAssets === 0) return;
+
+    const percentage = Math.round((loadedAssets / totalAssets) * 100);
+    const progressBar = document.getElementById('loadingProgress');
+    const progressText = document.getElementById('loadingPercentage');
+
+    if (progressBar) {
+        progressBar.style.width = `${percentage}%`;
+    }
+    if (progressText) {
+        progressText.textContent = `${percentage}%`;
+    }
+}
+
+export function initLoadingProgress(total) {
+    totalAssets = total;
+    loadedAssets = 0;
+    updateLoadingProgress();
+}
+
+export function incrementLoadingProgress() {
+    loadedAssets++;
+    updateLoadingProgress();
+}
 
 // Helper function to retry async operations
 async function retryWithBackoff(fn, attempts = RETRY_ATTEMPTS) {
@@ -70,7 +101,7 @@ export function loadAudioAsync(path) {
         const audio = new Audio(path);
         const timeout = setTimeout(() => {
             reject(new Error('Audio loading timeout'));
-        }, 10000);
+        }, ASSET_CONFIG.AUDIO_TIMEOUT);
 
         audio.addEventListener('canplaythrough', () => {
             clearTimeout(timeout);

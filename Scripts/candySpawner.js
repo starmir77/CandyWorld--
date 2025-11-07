@@ -3,11 +3,12 @@ import * as THREE from 'three';
 import { scene, worldOrder } from "../index.js";
 import { camera } from "../index.js";
 import gameState from "./gameState.js";
+import { GAME_CONFIG } from "./constants.js";
 
 let fallingCandies = []; // Track falling candies
 let spawnLoop; // store interval reference so we can modify, stop later on
 let candyUpdateIndex;
-const MAX_ACTIVE_CANDIES = 100;
+const MAX_ACTIVE_CANDIES = GAME_CONFIG.MAX_ACTIVE_CANDIES;
 const CANDIES_PER_FRAME = 5;
 
 

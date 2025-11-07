@@ -1,3 +1,5 @@
+import { GAME_CONFIG } from './constants.js';
+
 export function hideInterface(uiElement) {
     document.getElementById(uiElement).style.display = "none";
 }
@@ -53,7 +55,7 @@ export function showInstructions(){
 
         setTimeout(() => {
             instructions.classList.add("hidden");
-        }, 4000);
+        }, GAME_CONFIG.INSTRUCTION_DURATION);
     }
 }
 

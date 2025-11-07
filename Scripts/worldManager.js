@@ -5,7 +5,8 @@ import gameState from './gameState.js';
 import { startSpawning, stopSpawning } from './candySpawner.js';
 import { worlds } from './world.js';
 import { hideInterface, showInstructions, showScorePanel, showErrorMessage } from './uiManager.js';
-import { loadTextureAsync, loadGLTFAsync, playTransitionSound, loadEXRAsync } from './assetLoader.js';
+import { loadTextureAsync, loadGLTFAsync, playTransitionSound, loadEXRAsync, initLoadingProgress, incrementLoadingProgress } from './assetLoader.js';
+import { GAME_CONFIG, VISUAL_CONFIG } from './constants.js';
 
 
 export let currentClickSound = null;
@@ -128,7 +129,7 @@ export async function flyToWorld(worldName) {
     // Instantly face the target planet
     camera.lookAt(lookTarget);
 
-    animateCameraToPosition(start, end, lookTarget, 2000, () => {
+    animateCameraToPosition(start, end, lookTarget, GAME_CONFIG.CAMERA_ANIMATION_DURATION, () => {
         gameState.currentWorldPos = worldPosition.clone();
 
         // Show instructions once at the beginning of the game
@@ -146,6 +147,10 @@ const skyboxMaterials = {}; // Reuse your original global object
 export async function loadSkyboxAssets() {
     const loadPromises = [];
 
+    // Count total assets to load (3 skyboxes + 1 EXR background)
+    const worldCount = Object.keys(worlds).filter(name => worlds[name].interiorSky?.texture).length;
+    initLoadingProgress(worldCount + 1); // +1 for EXR background
+
     for (const worldName in worlds) {
         const world = worlds[worldName];
         if (world.interiorSky?.texture) {
@@ -159,6 +164,7 @@ export async function loadSkyboxAssets() {
                         side: THREE.BackSide,
                         depthWrite: false,
                     });
+                    incrementLoadingProgress();
                 })
                 .catch(error => {
                     console.error(`Failed to load skybox for ${worldName}:`, error);
@@ -168,6 +174,7 @@ export async function loadSkyboxAssets() {
                         side: THREE.BackSide,
                         depthWrite: false,
                     });
+                    incrementLoadingProgress();
                 });
             loadPromises.push(promise);
         }
@@ -190,6 +197,7 @@ export async function loadEXRBackground(path) {
         scene.background = envMap;
         scene.environment = envMap;
 
+        incrementLoadingProgress();
         hideInterface("loadingOverlay");
 
         texture.dispose();
@@ -198,22 +206,24 @@ export async function loadEXRBackground(path) {
     } catch (error) {
         console.error("Error loading EXR background:", error);
 
+        incrementLoadingProgress();
+
         // Show error to user
         showErrorMessage("Failed to load the CandyWorld environment. Please check your connection and try again.");
 
         // Set fallback background color
-        scene.background = new THREE.Color(0x1a0033); // Dark purple space color
+        scene.background = new THREE.Color(VISUAL_CONFIG.FALLBACK_SPACE_COLOR);
     }
 }
 
-export function createStars(count = 1000) {
+export function createStars(count = VISUAL_CONFIG.STAR_COUNT) {
     const geometry = new THREE.BufferGeometry();
     const positions = [];
 
     for (let i = 0; i < count; i++) {
-        const x = (Math.random() - 0.5) * 2000;
-        const y = (Math.random() - 0.5) * 2000;
-        const z = (Math.random() - 0.5) * 2000;
+        const x = (Math.random() - 0.5) * VISUAL_CONFIG.STAR_SPREAD;
+        const y = (Math.random() - 0.5) * VISUAL_CONFIG.STAR_SPREAD;
+        const z = (Math.random() - 0.5) * VISUAL_CONFIG.STAR_SPREAD;
         positions.push(x, y, z);
     }
 
@@ -221,7 +231,7 @@ export function createStars(count = 1000) {
 
     const material = new THREE.PointsMaterial({
         color: 0xffffff,
-        size: 2,
+        size: VISUAL_CONFIG.STAR_SIZE,
         sizeAttenuation: true,
     });
 

@@ -6,6 +6,7 @@ import { worlds, createPlanetMeshes, universeBackground } from './Scripts/world.
 import gameState from './Scripts/gameState.js';
 import { hideStartUI, toggleTransitionMessage, showFinalMessage } from './Scripts/uiManager.js';
 import { scene, camera, renderer, ambientLight, directionalLight } from './Scripts/sceneSetup.js';
+import { GAME_CONFIG, VISUAL_CONFIG } from './Scripts/constants.js';
 
 
 
@@ -54,7 +55,7 @@ window.addEventListener("levelUp", () => {
         gameState.currentWorldIndex = nextWorldIndex;
         flyToWorld(nextWorldName);
 
-    }, 2500);  //2.5 second delay
+    }, GAME_CONFIG.TRANSITION_DELAY);
 
 })
 
@@ -62,8 +63,13 @@ window.addEventListener("levelUp", () => {
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-// Listen for Clicks
-window.addEventListener("click", onMouseClick);
+// Listen for pointer events (better mobile support than click)
+window.addEventListener("pointerdown", onMouseClick);
+
+// Prevent default touch behaviors on canvas for better mobile experience
+const canvas = document.querySelector('.webgl');
+canvas.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
 //  Destroy Candy on Click and increase score
 function onMouseClick(event) {
@@ -120,18 +126,43 @@ function onMouseClick(event) {
 // Load Skybox Assets
 loadSkyboxAssets();
 
-let frameCount = 0;
-
 // Animation Loop to Continuously Render
 function animate() {
     requestAnimationFrame(animate);
-    frameCount++;
     renderer.render(scene, camera);
 
     updateFallingCandies();
-    ambientLight.intensity = 5 + Math.sin(Date.now() * 0.001) * 0.5;
+    ambientLight.intensity = VISUAL_CONFIG.AMBIENT_LIGHT_BASE_INTENSITY +
+        Math.sin(Date.now() * VISUAL_CONFIG.AMBIENT_LIGHT_PULSE_SPEED) * VISUAL_CONFIG.AMBIENT_LIGHT_PULSE_AMOUNT;
 }
 animate();
+
+// Clean up resources on page unload to prevent memory leaks
+window.addEventListener('beforeunload', () => {
+    // Dispose all geometries and materials in the scene
+    scene.traverse(obj => {
+        if (obj.geometry) {
+            obj.geometry.dispose();
+        }
+        if (obj.material) {
+            const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
+            materials.forEach(material => {
+                // Dispose textures
+                if (material.map) material.map.dispose();
+                if (material.lightMap) material.lightMap.dispose();
+                if (material.bumpMap) material.bumpMap.dispose();
+                if (material.normalMap) material.normalMap.dispose();
+                if (material.specularMap) material.specularMap.dispose();
+                if (material.envMap) material.envMap.dispose();
+
+                material.dispose();
+            });
+        }
+    });
+
+    // Dispose renderer
+    renderer.dispose();
+});
 
 export { scene, camera, currentClickSound, worldOrder };
 

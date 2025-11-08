@@ -3,13 +3,11 @@ import * as THREE from 'three';
 import { scene, worldOrder } from "../index.js";
 import { camera } from "../index.js";
 import gameState from "./gameState.js";
-import { showFinalMessage } from "./uiManager.js";
+import { GAME_CONFIG } from "./constants.js";
 
 let fallingCandies = []; // Track falling candies
 let spawnLoop; // store interval reference so we can modify, stop later on
-let candyUpdateIndex;
-const MAX_ACTIVE_CANDIES = 100;
-const CANDIES_PER_FRAME = 5;
+const MAX_ACTIVE_CANDIES = GAME_CONFIG.MAX_ACTIVE_CANDIES;
 
 
 // Spawn Candy at Random Position relative to world and camera positions
@@ -107,17 +105,20 @@ function increaseScore() {
     gameState.score++;
     document.getElementById("scoreDisplay").textContent = "Score: " + gameState.score;
 
+    // Check and update high score
+    if (gameState.score > gameState.highScore) {
+        gameState.highScore = gameState.score;
+        localStorage.setItem('candyworld_highscore', gameState.score);
+        document.getElementById("highScoreDisplay").textContent = "High Score: " + gameState.highScore;
+    }
+
     if (gameState.score % gameState.nextLevelScore === 0) {
         gameState.spawnInterval *= gameState.levelSpeed; // decrease interval falling candy interval
         console.log("New spawn interval:", gameState.spawnInterval);
 
-        // Fire envent when level increases
+        // Fire event when level increases
         const event = new CustomEvent("levelUp");
         window.dispatchEvent(event);
-
-        if (gameState.currentWorldIndex === worldOrder.length - 1) {
-            showFinalMessage();
-        }
     }
 }
 

@@ -4,11 +4,72 @@ import { scene, camera, pmremGenerator } from './sceneSetup.js';
 import gameState from './gameState.js';
 import { startSpawning, stopSpawning } from './candySpawner.js';
 import { worlds } from './world.js';
-import { hideInterface, showInstructions, showScorePanel } from './uiManager.js';
-import { loadTextureAsync, loadGLTFAsync, playTransitionSound, loadEXRAsync } from './assetLoader.js';
+import { hideInterface, showInstructions, showScorePanel, showErrorMessage } from './uiManager.js';
+import { loadTextureAsync, loadGLTFAsync, playTransitionSound, loadEXRAsync, initLoadingProgress, incrementLoadingProgress } from './assetLoader.js';
+import { GAME_CONFIG, VISUAL_CONFIG } from './constants.js';
 
 
 export let currentClickSound = null;
+
+// Cache for preloaded candy models
+const candyModelCache = {};
+
+// Preload all candy models during initial load
+export async function preloadCandyModels() {
+    const loadPromises = [];
+
+    for (const worldName in worlds) {
+        const world = worlds[worldName];
+        const promise = loadGLTFAsync(world.model)
+            .then(gltf => {
+                const candyModel = gltf.scene;
+
+                // Fix chocolate world shading
+                if (world.name === "Chocoworld") {
+                    candyModel.traverse(child => {
+                        if (child.isMesh) {
+                            child.geometry.computeVertexNormals();
+                            child.material = new THREE.MeshStandardMaterial({
+                                color: 0x8b4513,
+                                metalness: 0.3,
+                                roughness: 0.6,
+                            });
+                        }
+                    });
+                }
+
+                candyModel.scale.copy(world.scale);
+                candyModel.rotation.copy(world.rotation);
+
+                // Cache the model
+                candyModelCache[worldName] = candyModel;
+                incrementLoadingProgress();
+            })
+            .catch(error => {
+                console.error(`Failed to preload candy model for ${worldName}:`, error);
+                // Create fallback
+                const fallbackGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+                const fallbackMaterial = new THREE.MeshStandardMaterial({
+                    color: world.color,
+                    emissive: world.emissive,
+                    emissiveIntensity: 0.5
+                });
+                const fallbackModel = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
+                fallbackModel.scale.copy(world.scale);
+                fallbackModel.rotation.copy(world.rotation);
+                candyModelCache[worldName] = fallbackModel;
+                incrementLoadingProgress();
+            });
+        loadPromises.push(promise);
+    }
+
+    try {
+        await Promise.all(loadPromises);
+        console.log("All candy models preloaded");
+    } catch (error) {
+        console.error("Error preloading candy models:", error);
+    }
+}
 
 function removeOldSkyDome() {
     const oldDome = scene.getObjectByName('interiorSky');
@@ -27,45 +88,45 @@ function addNewSkyDome(world, worldPosition) {
 }
 
 async function loadCandyModel(world, worldPosition) {
+    // Use preloaded model from cache
+    const candyModel = candyModelCache[world.name];
 
-    const gltf = await loadGLTFAsync(world.model);
-    const candyModel = gltf.scene;
-
-    // Fix chocolate world shading
-    if (world.name === "Chocoworld") {
-        candyModel.traverse(child => {
-            if (child.isMesh) {
-                child.geometry.computeVertexNormals();
-                child.material = new THREE.MeshStandardMaterial({
-                    color: 0x8b4513,
-                    metalness: 0.3,
-                    roughness: 0.6,
-                });
-            }
-        });
+    if (!candyModel) {
+        console.error(`Candy model for ${world.name} not found in cache!`);
+        return;
     }
 
+    // Load click sound
     if (world.clickSound) {
         currentClickSound = new Audio(world.clickSound);
     }
 
-    candyModel.scale.copy(world.scale);
-    candyModel.rotation.copy(world.rotation);
-
     startSpawning(candyModel, scene, worldPosition, world.geometry.radius);
 }
 
+/**
+ * Animates camera movement from start to end position using cubic easing
+ * @param {THREE.Vector3} start - Starting camera position
+ * @param {THREE.Vector3} end - Target camera position
+ * @param {THREE.Vector3} lookTarget - Point camera should look at during movement
+ * @param {number} duration - Animation duration in milliseconds
+ * @param {Function} onComplete - Callback executed when animation completes
+ */
 export function animateCameraToPosition(start, end, lookTarget, duration, onComplete) {
     const startTime = performance.now();
 
     function animate(time) {
         const elapsed = time - startTime;
-        let t = Math.min(elapsed / duration, 1);
+        let t = Math.min(elapsed / duration, 1); // Normalize to 0-1 range
 
+        // Cubic ease-in-out for smooth camera movement
+        // Accelerates at start, decelerates at end for natural feel
+        // Reference: https://easings.net/#easeInOutCubic
         t = t < 0.5
-            ? 4 * t * t * t
-            : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            ? 4 * t * t * t                      // Ease in (first half)
+            : 1 - Math.pow(-2 * t + 2, 3) / 2;   // Ease out (second half)
 
+        // Interpolate camera position based on eased time value
         camera.position.lerpVectors(start, end, t);
         camera.lookAt(lookTarget);
 
@@ -113,7 +174,7 @@ export async function flyToWorld(worldName) {
     // Instantly face the target planet
     camera.lookAt(lookTarget);
 
-    animateCameraToPosition(start, end, lookTarget, 2000, () => {
+    animateCameraToPosition(start, end, lookTarget, GAME_CONFIG.CAMERA_ANIMATION_DURATION, () => {
         gameState.currentWorldPos = worldPosition.clone();
 
         // Show instructions once at the beginning of the game
@@ -131,56 +192,84 @@ const skyboxMaterials = {}; // Reuse your original global object
 export async function loadSkyboxAssets() {
     const loadPromises = [];
 
+    // Count total assets to load (3 skyboxes + 1 EXR background + 3 candy models)
+    const worldCount = Object.keys(worlds).filter(name => worlds[name].interiorSky?.texture).length;
+    const candyModelCount = Object.keys(worlds).length;
+    initLoadingProgress(worldCount + 1 + candyModelCount); // skyboxes + EXR + candy models
+
     for (const worldName in worlds) {
         const world = worlds[worldName];
         if (world.interiorSky?.texture) {
-            const promise = loadTextureAsync(world.interiorSky.texture).then(texture => {
-                texture.encoding = THREE.sRGBEncoding;
-                texture.mapping = THREE.EquirectangularReflectionMapping;
+            const promise = loadTextureAsync(world.interiorSky.texture)
+                .then(texture => {
+                    texture.encoding = THREE.sRGBEncoding;
+                    texture.mapping = THREE.EquirectangularReflectionMapping;
 
-                skyboxMaterials[worldName] = new THREE.MeshBasicMaterial({
-                    map: texture,
-                    side: THREE.BackSide,
-                    depthWrite: false,
+                    skyboxMaterials[worldName] = new THREE.MeshBasicMaterial({
+                        map: texture,
+                        side: THREE.BackSide,
+                        depthWrite: false,
+                    });
+                    incrementLoadingProgress();
+                })
+                .catch(error => {
+                    console.error(`Failed to load skybox for ${worldName}:`, error);
+                    // Create fallback solid color material
+                    skyboxMaterials[worldName] = new THREE.MeshBasicMaterial({
+                        color: world.color,
+                        side: THREE.BackSide,
+                        depthWrite: false,
+                    });
+                    incrementLoadingProgress();
                 });
-            });
             loadPromises.push(promise);
         }
     }
 
-    await Promise.all(loadPromises);
-    console.log(" All Skyboses loaded");
+    try {
+        await Promise.all(loadPromises);
+        console.log("All skyboxes loaded");
+    } catch (error) {
+        console.error("Error loading skybox assets:", error);
+        // Continue anyway with fallback materials
+    }
 }
 
 export async function loadEXRBackground(path) {
-
     try {
-
         const texture = await loadEXRAsync(path);
         const envMap = pmremGenerator.fromEquirectangular(texture).texture;
 
         scene.background = envMap;
         scene.environment = envMap;
 
+        incrementLoadingProgress();
         hideInterface("loadingOverlay");
 
         texture.dispose();
         pmremGenerator.dispose();
 
-
     } catch (error) {
-        console.error("error loading exr background:", error);
+        console.error("Error loading EXR background:", error);
+
+        incrementLoadingProgress();
+
+        // Show error to user
+        showErrorMessage("Failed to load the CandyWorld environment. Please check your connection and try again.");
+
+        // Set fallback background color
+        scene.background = new THREE.Color(VISUAL_CONFIG.FALLBACK_SPACE_COLOR);
     }
 }
 
-export function createStars(count = 1000) {
+export function createStars(count = VISUAL_CONFIG.STAR_COUNT) {
     const geometry = new THREE.BufferGeometry();
     const positions = [];
 
     for (let i = 0; i < count; i++) {
-        const x = (Math.random() - 0.5) * 2000;
-        const y = (Math.random() - 0.5) * 2000;
-        const z = (Math.random() - 0.5) * 2000;
+        const x = (Math.random() - 0.5) * VISUAL_CONFIG.STAR_SPREAD;
+        const y = (Math.random() - 0.5) * VISUAL_CONFIG.STAR_SPREAD;
+        const z = (Math.random() - 0.5) * VISUAL_CONFIG.STAR_SPREAD;
         positions.push(x, y, z);
     }
 
@@ -188,7 +277,7 @@ export function createStars(count = 1000) {
 
     const material = new THREE.PointsMaterial({
         color: 0xffffff,
-        size: 2,
+        size: VISUAL_CONFIG.STAR_SIZE,
         sizeAttenuation: true,
     });
 

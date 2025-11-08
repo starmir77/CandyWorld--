@@ -1,12 +1,15 @@
+import { GAME_CONFIG } from './constants.js';
+
 const gameState = {
     score: 0,
+    highScore: parseInt(localStorage.getItem('candyworld_highscore')) || 0,
     currentWorldIndex: 0,
-    spawnInterval: 1000,
+    spawnInterval: GAME_CONFIG.INITIAL_SPAWN_INTERVAL,
     gameStarted: false,
-    fallSpeed: 0.025,
-    levelSpeed: 0.5, // decrease/increase falling candy interval
-    nextLevelScore: 10,
+    fallSpeed: GAME_CONFIG.FALL_SPEED,
+    levelSpeed: GAME_CONFIG.DIFFICULTY_MULTIPLIER,
+    nextLevelScore: GAME_CONFIG.POINTS_PER_LEVEL,
   };
-  
+
   export default gameState;
   
